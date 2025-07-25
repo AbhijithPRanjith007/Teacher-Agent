@@ -1,0 +1,1 @@
+# Localized Teaching Aid Generator Subagent
