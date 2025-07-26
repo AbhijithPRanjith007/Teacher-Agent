@@ -8,6 +8,8 @@ from PIL import Image
 from io import BytesIO
 import requests
 from pathlib import Path
+from google.cloud import storage
+import uuid
 
 # Configure Gemini API
 genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
@@ -391,9 +393,10 @@ def handle_minimal_request(user_request: str) -> str:
 def create_educational_image(request: str) -> dict:
     """
     Create educational images based on teacher requests using Google GenAI native image generation.
+    Uploads the generated image to Google Cloud Storage and returns the public URL.
     
     Takes basic teacher requests and creates simple educational visuals.
-    Returns a dictionary with the image URL for easy use by both sub-agent and root agent.
+    Returns a dictionary with the public image URL for easy use by both sub-agent and root agent.
     
     Args:
         request (str): Basic teacher request for visual content (required)
@@ -425,28 +428,36 @@ def create_educational_image(request: str) -> dict:
             )
         )
         
-        # Create static folder if it doesn't exist
-        static_folder = Path("./static/educational_images")
-        static_folder.mkdir(parents=True, exist_ok=True)
-        
-        # Generate filename based on request and timestamp
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        safe_request = "".join(c for c in request[:30] if c.isalnum() or c in (' ', '-', '_')).rstrip()
-        safe_request = safe_request.replace(' ', '_')
-        filename = f"{safe_request}_{timestamp}.png"
-        filepath = static_folder / filename
-        
-        # Process the response and save image
+        # Process the response and upload to GCP bucket
         for part in response.candidates[0].content.parts:
             if part.inline_data is not None:
-                # Convert image data and save
+                # Convert image data to PIL Image
                 image = Image.open(BytesIO(part.inline_data.data))
-                image.save(filepath)
                 
-                # Return simple dict with image URL
-                return {
-                    "image_url": str(filepath)
-                }
+                # Convert back to bytes for upload
+                img_byte_arr = BytesIO()
+                image.save(img_byte_arr, format='PNG')
+                img_byte_arr.seek(0)
+                
+                # Generate unique filename
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                unique_id = str(uuid.uuid4())[:8]
+                safe_request = "".join(c for c in request[:30] if c.isalnum() or c in (' ', '-', '_')).rstrip()
+                safe_request = safe_request.replace(' ', '_')
+                filename = f"educational_images/{safe_request}_{timestamp}_{unique_id}.png"
+                
+                # Upload to GCP bucket
+                public_url = upload_to_gcp_bucket(img_byte_arr.getvalue(), filename)
+                
+                if public_url:
+                    print(f"✅ Image uploaded successfully: {public_url}")
+                    return {
+                        "image_url": public_url
+                    }
+                else:
+                    return {
+                        "error": "Failed to upload image to GCP bucket"
+                    }
         
         # If no image data found, return error
         return {
@@ -454,6 +465,52 @@ def create_educational_image(request: str) -> dict:
         }
             
     except Exception as e:
+        print(f"❌ Error in create_educational_image: {str(e)}")
         return {
             "error": f"Error creating educational image: {str(e)}"
         }
+
+
+def upload_to_gcp_bucket(image_data: bytes, filename: str) -> str:
+    """
+    Upload image data to Google Cloud Storage bucket and return public URL.
+    
+    Args:
+        image_data (bytes): The image data to upload
+        filename (str): The filename/path for the uploaded file
+        
+    Returns:
+        str: Public URL of the uploaded image, or None if upload failed
+    """
+    try:
+        # Get bucket name from environment variable
+        bucket_name = os.getenv("GCP_BUCKET_NAME", "hackathon_by_us")
+        project_id = os.getenv("GCP_PROJECT_ID", "utility-range-466813-g7")
+        
+        # Initialize the Cloud Storage client
+        storage_client = storage.Client(project=project_id)
+        
+        # Get the bucket
+        bucket = storage_client.bucket(bucket_name)
+        
+        # Create a blob object
+        blob = bucket.blob(filename)
+        
+        # Set the content type
+        blob.content_type = 'image/png'
+        
+        # Upload the image data
+        blob.upload_from_string(image_data, content_type='image/png')
+        
+        # Make the blob publicly accessible
+        # blob.make_public()
+        
+        # Return the public URL
+        public_url = f"https://storage.googleapis.com/{bucket_name}/{filename}"
+        
+        print(f"✅ Successfully uploaded to GCP: {public_url}")
+        return public_url
+        
+    except Exception as e:
+        print(f"❌ Error uploading to GCP bucket: {str(e)}")
+        return None
