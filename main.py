@@ -45,10 +45,10 @@ if STATIC_DIR.exists():
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
-def start_agent_session(session_id, is_audio=False, audio_input_only=False):
+async def start_agent_session(session_id, is_audio=False, audio_input_only=False):
     """Starts an agent session"""
     # Create a Session
-    session = session_service.create_session(
+    session = await session_service.create_session(
         app_name=APP_NAME,
         user_id=session_id,
         session_id=session_id,
@@ -234,7 +234,7 @@ async def chat_endpoint(request: dict):
             }
             
             # Create new session with state
-            session = session_service.create_session(
+            session = await session_service.create_session(
                 app_name=APP_NAME,
                 user_id=f"user_{session_id}",
                 session_id=session_id,
@@ -296,20 +296,21 @@ async def chat_endpoint(request: dict):
                     break
         
         # Update session state with conversation context
-        session = session_service.get_session(
+        session = await session_service.get_session(
             app_name=APP_NAME, 
             user_id=user_id, 
             session_id=session_id
         )
         
-        # Add to conversation context
-        if "conversation_context" not in session.state:
-            session.state["conversation_context"] = []
-        
-        session.state["conversation_context"].append({
-            "user_message": message,
-            "agent_response": response_text
-        })
+        # Add to conversation context if session exists
+        if session and hasattr(session, 'state') and session.state:
+            if "conversation_context" not in session.state:
+                session.state["conversation_context"] = []
+            
+            session.state["conversation_context"].append({
+                "user_message": message,
+                "agent_response": response_text
+            })
         
         return {"response": response_text, "session_id": session_id}
         
@@ -347,7 +348,7 @@ async def websocket_endpoint(
     audio_input_only_bool = audio_input_only.lower() == "true"
     print(f"Client #{session_id} connected, audio mode: {is_audio}, audio input only: {audio_input_only_bool}")
     
-    live_events, live_request_queue = start_agent_session(
+    live_events, live_request_queue = await start_agent_session(
         session_id, is_audio == "true", audio_input_only_bool
     )
     
