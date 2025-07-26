@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 # Constants
 PROJECT_ID = "utility-range-466813-g7"
 LOCATION = "us-central1"
-MODEL = "gemini-2.0-flash-exp"
+MODEL = "gemini-2.0-flash"
 VOICE_NAME = "Puck"
 
 # Audio sample rates for input/output

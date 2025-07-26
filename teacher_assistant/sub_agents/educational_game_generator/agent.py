@@ -5,7 +5,7 @@ from .tools.simple_tools import create_simple_quiz_game, create_simple_math_game
 # Create the educational game generator agent
 educational_game_generator = Agent(
     name="educational_game_generator",
-    model="gemini-2.0-flash-exp",
+    model="gemini-2.0-flash",
     description="An agent that creates simple educational games.",
     instruction="""
     You are a simple educational game generator.

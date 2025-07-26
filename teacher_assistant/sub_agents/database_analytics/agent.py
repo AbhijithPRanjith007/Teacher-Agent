@@ -23,7 +23,7 @@ mcp_toolset = MCPToolset(
 # Create the database analytics agent
 database_analytics = Agent(
     name="database_analytics",
-    model="gemini-2.0-flash-exp",
+    model="gemini-2.0-flash",
     description="An agent that analyzes student information by fetching required data from the database.",
     instruction="""
     You are a comprehensive student information management and analysis agent. Your job is to manage and analyze student-related data from database tables including students, attendance, behavior_records, academic_records, and related tables.

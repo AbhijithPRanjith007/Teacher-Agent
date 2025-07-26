@@ -13,7 +13,7 @@ from .tools.tools import (
 # Create the localized teaching aid generator agent
 localized_teaching_aid_generator = Agent(
     name="localized_teaching_aid_generator",
-    model="gemini-2.0-flash-exp",
+    model="gemini-2.0-flash",
     description="An agent that generates hyper-local, culturally relevant educational content in any language.",
     instruction="""
     You are a specialized localized teaching aid generator that creates culturally relevant educational content in any language.
