@@ -10,7 +10,7 @@ from .tools.tools import (
 # Create the worksheet generator and lesson planner agent
 worksheet_generator_lesson_planner = Agent(
     name="worksheet_generator_lesson_planner",
-    model="gemini-2.0-flash",
+    model="gemini-2.0-flash-exp",
     description="An agent that analyzes textbook content and generates differentiated worksheets and lesson plans for multi-grade classrooms.",
     instruction="""
     You are a specialized worksheet generator and lesson planner that analyzes textbook images and creates educational materials.

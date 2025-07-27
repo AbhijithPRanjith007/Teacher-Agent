@@ -242,11 +242,14 @@ from .sub_agents.database_analytics.agent import database_analytics
 #         import traceback
 #         traceback.print_exc()
 
-
+HTTP_MODEL = "gemini-2.5-pro"  # Used for /api/chat endpoint
+# For WebSocket requests via /ws/{session_id}, use:
+#   model = "gemini-live-2.5-flash-preview" (streaming/bidirectional)
+WEBSOCKET_MODEL = "gemini-live-2.5-flash-preview"
 # Original root agent for non-audio usage
 root_agent = Agent(
     name="teacher_assistant",
-    model="gemini-2.0-flash",
+    model="gemini-2.0-flash-exp",
     description="Teacher Assistant Agent",
     instruction="""
     You are a comprehensive teacher assistant agent that helps educators with various teaching tasks.

@@ -14,7 +14,7 @@ from .tools.tools import (
 # Create the audio-based reading assessment agent
 audio_based_reading_assessment = Agent(
     name="audio_based_reading_assessment",
-    model="gemini-2.0-flash",
+    model="gemini-2.0-flash-exp",
     description="An agent that conducts comprehensive reading assessments through audio analysis, providing grade-level appropriate evaluation of reading fluency, pronunciation, and comprehension skills.",
     instruction="""
     You are a specialized audio-based reading assessment agent that evaluates students' reading abilities through analysis of their spoken reading.

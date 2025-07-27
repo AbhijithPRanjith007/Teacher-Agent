@@ -18,7 +18,8 @@ from google.adk.events.event import Event
 from google.adk.runners import Runner
 from google.adk.sessions import InMemorySessionService
 from google.genai import types
-from teacher_assistant.agent import root_agent
+from teacher_assistant.agent import root_agent, HTTP_MODEL, WEBSOCKET_MODEL
+
 
 # Load environment variables
 load_dotenv()
